@@ -1,0 +1,38 @@
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Job, JobStatus } from "./job.entity";
+import { InjectQueue } from "@nestjs/bull";
+import { Queue } from "bull";
+
+@Injectable()
+export class JobService {
+  constructor(
+    @InjectRepository(Job)
+    private readonly jobRepo: Repository<Job>,
+    @InjectQueue("jobs-queue")
+    private readonly jobQueue: Queue
+  ) {}
+
+  async createJob(type: string, payload: any) {
+    // Step 1: Save in DB
+    const job = this.jobRepo.create({ type, payload });
+    const savedJob = await this.jobRepo.save(job);
+
+    console.log("added to database");
+    // Step 2: Enqueue in Redis
+    await this.jobQueue.add(type, { id: savedJob.id, ...payload });
+    console.log("Job added:", savedJob.id);
+    console.log("added to queue");
+
+    return savedJob;
+  }
+
+  async getJobs() {
+    return this.jobRepo.find();
+  }
+
+  async updateStatus(id: string, status: JobStatus) {
+    await this.jobRepo.update(id, { status });
+  }
+}
