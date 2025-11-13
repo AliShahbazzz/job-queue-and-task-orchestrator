@@ -21,7 +21,17 @@ export class JobService {
 
     console.log("added to database");
     // Step 2: Enqueue in Redis
-    await this.jobQueue.add(type, { id: savedJob.id, ...payload });
+    await this.jobQueue.add(
+      type,
+      { id: savedJob.id, ...payload },
+      {
+        attempts: 3, // retry 3 times
+        backoff: {
+          type: "exponential",
+          delay: 5000, // 5s, then 10s, then 20s
+        },
+      }
+    );
     console.log("Job added:", savedJob.id);
     console.log("added to queue");
 

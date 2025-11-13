@@ -7,7 +7,7 @@ import { JobStatus } from "./job.entity";
 export class JobProcessor {
   constructor(private readonly jobsService: JobService) {}
 
-  @Process("email")
+  @Process({ name: "email", concurrency: 50 })
   async handleEmail(job: BullJob) {
     console.log("Processing job:", job.name, job.data);
 
@@ -26,7 +26,7 @@ export class JobProcessor {
     }
   }
 
-  @Process("report")
+  @Process({ name: "report", concurrency: 50 })
   async handleReport(job: BullJob) {
     console.log("Processing job:", job.name, job.data);
 
