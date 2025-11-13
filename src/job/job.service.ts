@@ -30,6 +30,7 @@ export class JobService {
           type: "exponential",
           delay: 5000, // 5s, then 10s, then 20s
         },
+        removeOnComplete: true, // clean up successful jobs
       }
     );
     console.log("Job added:", savedJob.id);
